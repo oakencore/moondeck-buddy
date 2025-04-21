@@ -8,6 +8,7 @@
 #include "os/autostarthandler.h"
 #include "os/pccontrol.h"
 #include "os/sunshineapps.h"
+#include "os/apolloapps.h"
 #include "os/systemtray.h"
 #include "routing.h"
 #include "server/clientids.h"
@@ -166,6 +167,7 @@ int main(int argc, char* argv[])
 
     os::PcControl    pc_control{app_settings};
     os::SunshineApps sunshine_apps{app_settings.getSunshineAppsFilepath()};
+    os::ApolloApps apollo_apps{app_settings.getApolloAppsFilepath()};
 
     const QIcon               icon{":/icons/app.ico"};
     const os::SystemTray      tray{icon, app_meta.getAppName(), pc_control};
@@ -188,7 +190,7 @@ int main(int argc, char* argv[])
                      &server::PairingManager::slotPairingRejected);
 
     // HERE WE GO!!! (a.k.a. starting point)
-    setupRoutes(new_server, pairing_manager, pc_control, sunshine_apps, app_settings.getMacAddressOverride());
+    setupRoutes(new_server, pairing_manager, pc_control, sunshine_apps, apollo_apps, app_settings.getMacAddressOverride());
 
     client_ids.load();
     if (!new_server.startServer(app_settings.getPort(), ":/ssl/moondeck_cert.pem", ":/ssl/moondeck_key.pem",
