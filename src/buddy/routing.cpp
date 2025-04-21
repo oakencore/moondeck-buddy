@@ -9,6 +9,7 @@
 // local includes
 #include "os/networkinfo.h"
 #include "shared/loggingcategories.h"
+#include "os/apolloapps.h"
 #include "utils/jsonvalueconverter.h"
 
 namespace
@@ -387,25 +388,32 @@ void setupStream(server::HttpServer& server, os::PcControl& pc_control)
                  });
 }
 
-void setupGameStreamApps(server::HttpServer& server, os::SunshineApps& sunshine_apps)
+void setupGameStreamApps(server::HttpServer& server, os::SunshineApps& sunshine_apps, os::ApolloApps& apollo_apps)
 {
     server.route(
         "/gameStreamAppNames", QHttpServerRequest::Method::Get,
-        [&server, &sunshine_apps](const QHttpServerRequest& request)
-        {
-            if (!server.isAuthorized(request))
+        [&server, &sunshine_apps, &apollo_apps](const QHttpServerRequest& request)
+        {    if (!server.isAuthorized(request))
             {
                 return QHttpServerResponse{QHttpServerResponse::StatusCode::Unauthorized};
             }
+            QStringList merged_apps;
+             if(const auto sunshine_apps_opt = sunshine_apps.load(); sunshine_apps_opt){
+                merged_apps.append(QStringList{std::begin(*sunshine_apps_opt), std::end(*sunshine_apps_opt)});
+             }
+             if(const auto apollo_apps_opt = apollo_apps.load(); apollo_apps_opt){
+                merged_apps.append(QStringList{std::begin(*apollo_apps_opt), std::end(*apollo_apps_opt)});
+             }
 
-            const auto app_names{sunshine_apps.load()};
-            if (!app_names)
-            {
+             if (merged_apps.isEmpty())
+             {
                 return QHttpServerResponse{QJsonObject{{"appNames", QJsonValue()}}};
-            }
+             }
+           
 
-            return QHttpServerResponse{QJsonObject{
-                {"appNames", QJsonArray::fromStringList(QStringList{std::begin(*app_names), std::end(*app_names)})}}};
+          
+
+            return QHttpServerResponse{QJsonObject{{"appNames", QJsonArray::fromStringList(merged_apps)}}};
         });
 }
 
@@ -422,7 +430,7 @@ void setupRouteLogging(server::HttpServer& server)
 }  // namespace routing_internal
 
 void setupRoutes(server::HttpServer& server, server::PairingManager& pairing_manager, os::PcControl& pc_control,
-                 os::SunshineApps& sunshine_apps, const QString& mac_address_override)
+                 os::SunshineApps& sunshine_apps, os::ApolloApps& apollo_apps, const QString& mac_address_override)
 {
     routing_internal::setupApiVersion(server);
     routing_internal::setupPairing(server, pairing_manager);
@@ -430,7 +438,7 @@ void setupRoutes(server::HttpServer& server, server::PairingManager& pairing_man
     routing_internal::setupHostInfo(server, mac_address_override);
     routing_internal::setupSteam(server, pc_control);
     routing_internal::setupStream(server, pc_control);
-    routing_internal::setupGameStreamApps(server, sunshine_apps);
+    routing_internal::setupGameStreamApps(server, sunshine_apps, apollo_apps);
     routing_internal::setupRouteLogging(server);
 }
 
