@@ -1,8 +1,8 @@
 #pragma once
 
-// system/Qt includes
+// Qt includes
+#include <QObject>
 #include <QString>
-class QObject;
 
 namespace shared
 {
@@ -16,7 +16,7 @@ public:
     };
 
     explicit AppMetadata(App app);
-    ~AppMetadata() override = default;
+    ~AppMetadata();
 
     QString getAppName() const;
     QString getAppName(App app) const;

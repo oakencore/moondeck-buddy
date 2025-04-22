@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTimer>
+#include <chrono>
 
 // local includes
 #include "shared/loggingcategories.h"
@@ -48,7 +49,7 @@ AppMetadata::AppMetadata(App app)
     : m_current_app{app}
 {
     // Delay logging until application start
-    QTimer::singleShot(0, this,
+    QTimer::singleShot(std::chrono::seconds(5), this,
                        [this]()
                        {
                            qCDebug(lc::shared) << "getAppName() >> " << getAppName();
