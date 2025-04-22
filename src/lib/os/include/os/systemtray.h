@@ -3,8 +3,11 @@
 // system/Qt includes
 #include <QTimer>
 #include <QtWidgets/QMenu>
-#include <QtWidgets/QSystemTrayIcon>
 #include <memory>
+
+// forward declarations
+class QMenu;
+class QSystemTrayIcon;
 
 // forward declarations
 namespace os

@@ -1,6 +1,7 @@
 #pragma once
 
 // system/Qt includes
+#include <QString>
 class QObject;
 
 namespace shared
