@@ -1,6 +1,7 @@
 // header file include
 #include "os/steam/steamprocesstracker.h"
 
+#include "utils/appsettings.h"
 // system/Qt includes
 #include <QDir>
 #include <QRegularExpression>
@@ -10,8 +11,16 @@
 #include "os/shared/nativeprocesshandlerinterface.h"
 #include "shared/loggingcategories.h"
 
+namespace os
+{
 namespace
 {
+std::filesystem::path getSteamDir(const utils::AppSettings& app_settings, const QString& exec_path)
+{
+    if (!app_settings.getSteamDirOverride().isEmpty()){
+        return app_settings.getSteamDirOverride().toStdString();
+    }
+
 std::filesystem::path getSteamDir(const QString& exec_path)
 {
     QDir dir{exec_path};
@@ -32,11 +41,12 @@ std::filesystem::path getSteamDir(const QString& exec_path)
     return {};
 }
 }  // namespace
+}  // namespace
 
-namespace os
+namespace os 
 {
-SteamProcessTracker::SteamProcessTracker(std::unique_ptr<NativeProcessHandlerInterface> native_handler)
-    : m_native_handler{std::move(native_handler)}
+SteamProcessTracker::SteamProcessTracker(const utils::AppSettings& app_settings, std::unique_ptr<NativeProcessHandlerInterface> native_handler)
+    : m_native_handler{std::move(native_handler)}, m_app_settings{app_settings}
 {
     Q_ASSERT(m_native_handler);
 
@@ -45,7 +55,7 @@ SteamProcessTracker::SteamProcessTracker(std::unique_ptr<NativeProcessHandlerInt
     m_check_timer.setInterval(1000);
     m_check_timer.setSingleShot(true);
 
-    QTimer::singleShot(0, this, &SteamProcessTracker::slotCheckState);
+   QTimer::singleShot(0, this, &SteamProcessTracker::slotCheckState);
 }
 
 // For forward declarations
@@ -136,7 +146,7 @@ void SteamProcessTracker::slotCheckState()
 
         auto cleanup{qScopeGuard([this]() { m_data = {}; })};
 
-        m_data.m_steam_dir = ::getSteamDir(exec_path);
+        m_data.m_steam_dir = ::getSteamDir(m_app_settings, exec_path);
         if (m_data.m_steam_dir.empty())
         {
             qCInfo(lc::os) << "Could not resolve steam directory for running Steam process, PID:" << pid;
