@@ -22,11 +22,13 @@ public:
     quint16                    getPort() const;
     const QString&             getLoggingRules() const;
     const QString&             getSunshineAppsFilepath() const;
+    const QString&             getApolloAppsFilepath() const;
     bool                       getPreferHibernation() const;
     QSsl::SslProtocol          getSslProtocol() const;
     bool                       getCloseSteamBeforeSleep() const;
     QString                    getSteamExecutablePath() const;
     const QString&             getMacAddressOverride() const;
+    const QString&             getSteamDirOverride() const;
 
 private:
     bool parseSettingsFile(const QString& filepath);
@@ -36,10 +38,12 @@ private:
     quint16                    m_port;
     QString                    m_logging_rules;
     QString                    m_sunshine_apps_filepath;
+    QString                    m_apollo_apps_filepath;
     bool                       m_prefer_hibernation;
     QSsl::SslProtocol          m_ssl_protocol;
     bool                       m_close_steam_before_sleep;
     QString                    m_steam_exec_override;
     QString                    m_mac_address_override;
+    QString                    m_steam_dir_override;
 };
 }  // namespace utils
