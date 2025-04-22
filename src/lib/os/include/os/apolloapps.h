@@ -2,8 +2,8 @@
 
 // system/Qt includes
 #include <QString>
-#include <set>
 #include <optional>
+#include <set>
 
 namespace os
 {

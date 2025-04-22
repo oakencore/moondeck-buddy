@@ -7,9 +7,9 @@
 #include <limits>
 
 // local includes
+#include "os/apolloapps.h"
 #include "os/networkinfo.h"
 #include "shared/loggingcategories.h"
-#include "os/apolloapps.h"
 #include "utils/jsonvalueconverter.h"
 
 namespace
@@ -390,31 +390,30 @@ void setupStream(server::HttpServer& server, os::PcControl& pc_control)
 
 void setupGameStreamApps(server::HttpServer& server, os::SunshineApps& sunshine_apps, os::ApolloApps& apollo_apps)
 {
-    server.route(
-        "/gameStreamAppNames", QHttpServerRequest::Method::Get,
-        [&server, &sunshine_apps, &apollo_apps](const QHttpServerRequest& request)
-        {    if (!server.isAuthorized(request))
-            {
-                return QHttpServerResponse{QHttpServerResponse::StatusCode::Unauthorized};
-            }
-            QStringList merged_apps;
-             if(const auto sunshine_apps_opt = sunshine_apps.load(); sunshine_apps_opt){
-                merged_apps.append(QStringList{std::begin(*sunshine_apps_opt), std::end(*sunshine_apps_opt)});
-             }
-             if(const auto apollo_apps_opt = apollo_apps.load(); apollo_apps_opt){
-                merged_apps.append(QStringList{std::begin(*apollo_apps_opt), std::end(*apollo_apps_opt)});
-             }
+    server.route("/gameStreamAppNames", QHttpServerRequest::Method::Get,
+                 [&server, &sunshine_apps, &apollo_apps](const QHttpServerRequest& request)
+                 {
+                     if (!server.isAuthorized(request))
+                     {
+                         return QHttpServerResponse{QHttpServerResponse::StatusCode::Unauthorized};
+                     }
+                     QStringList merged_apps;
+                     if (const auto sunshine_apps_opt = sunshine_apps.load(); sunshine_apps_opt)
+                     {
+                         merged_apps.append(QStringList{std::begin(*sunshine_apps_opt), std::end(*sunshine_apps_opt)});
+                     }
+                     if (const auto apollo_apps_opt = apollo_apps.load(); apollo_apps_opt)
+                     {
+                         merged_apps.append(QStringList{std::begin(*apollo_apps_opt), std::end(*apollo_apps_opt)});
+                     }
 
-             if (merged_apps.isEmpty())
-             {
-                return QHttpServerResponse{QJsonObject{{"appNames", QJsonValue()}}};
-             }
-           
+                     if (merged_apps.isEmpty())
+                     {
+                         return QHttpServerResponse{QJsonObject{{"appNames", QJsonValue()}}};
+                     }
 
-          
-
-            return QHttpServerResponse{QJsonObject{{"appNames", QJsonArray::fromStringList(merged_apps)}}};
-        });
+                     return QHttpServerResponse{QJsonObject{{"appNames", QJsonArray::fromStringList(merged_apps)}}};
+                 });
 }
 
 void setupRouteLogging(server::HttpServer& server)

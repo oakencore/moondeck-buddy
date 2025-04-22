@@ -17,36 +17,39 @@ namespace
 {
 std::filesystem::path getSteamDir(const utils::AppSettings& app_settings, const QString& exec_path)
 {
-    if (!app_settings.getSteamDirOverride().isEmpty()){
+    if (!app_settings.getSteamDirOverride().isEmpty())
+    {
         return app_settings.getSteamDirOverride().toStdString();
     }
 
-std::filesystem::path getSteamDir(const QString& exec_path)
-{
-    QDir dir{exec_path};
-    for (int i = 0; i < 3; ++i)  // Go up only 3 levels
+    std::filesystem::path getSteamDir(const QString& exec_path)
     {
-        static const QStringList required_dirs{"logs", "userdata", "steamui"};
-        if (std::ranges::all_of(required_dirs, [&dir](const auto& path) { return dir.exists(path); }))
+        QDir dir{exec_path};
+        for (int i = 0; i < 3; ++i)  // Go up only 3 levels
         {
-            return dir.filesystemCanonicalPath();
+            static const QStringList required_dirs{"logs", "userdata", "steamui"};
+            if (std::ranges::all_of(required_dirs, [&dir](const auto& path) { return dir.exists(path); }))
+            {
+                return dir.filesystemCanonicalPath();
+            }
+
+            if (!dir.cdUp())
+            {
+                break;
+            }
         }
 
-        if (!dir.cdUp())
-        {
-            break;
-        }
+        return {};
     }
-
-    return {};
-}
 }  // namespace
 }  // namespace
 
-namespace os 
+namespace os
 {
-SteamProcessTracker::SteamProcessTracker(const utils::AppSettings& app_settings, std::unique_ptr<NativeProcessHandlerInterface> native_handler)
-    : m_native_handler{std::move(native_handler)}, m_app_settings{app_settings}
+SteamProcessTracker::SteamProcessTracker(const utils::AppSettings&                      app_settings,
+                                         std::unique_ptr<NativeProcessHandlerInterface> native_handler)
+    : m_native_handler{std::move(native_handler)}
+    , m_app_settings{app_settings}
 {
     Q_ASSERT(m_native_handler);
 
@@ -55,7 +58,7 @@ SteamProcessTracker::SteamProcessTracker(const utils::AppSettings& app_settings,
     m_check_timer.setInterval(1000);
     m_check_timer.setSingleShot(true);
 
-   QTimer::singleShot(0, this, &SteamProcessTracker::slotCheckState);
+    QTimer::singleShot(0, this, &SteamProcessTracker::slotCheckState);
 }
 
 // For forward declarations
