@@ -51,6 +51,8 @@ AppSettings::AppSettings(const shared::AppMetadata& app_metadata)
     , m_prefer_hibernation{false}
     , m_ssl_protocol{QSsl::SecureProtocols}
     , m_close_steam_before_sleep{true}
+    , m_steam_dir_override{}
+    , m_apollo_apps_filepath{}
 {
     auto settings_path{m_app_metadata.getSettingsPath()};
     if (!parseSettingsFile(settings_path))
@@ -116,6 +118,16 @@ const QString& AppSettings::getMacAddressOverride() const
     return m_mac_address_override;
 }
 
+const QString& AppSettings::getSteamDirOverride() const
+{
+    return m_steam_dir_override;
+}
+
+const QString& AppSettings::getApolloAppsFilepath() const
+{
+    return m_apollo_apps_filepath;
+}
+
 // NOLINTNEXTLINE(*-function-cognitive-complexity)
 bool AppSettings::parseSettingsFile(const QString& filepath)
 {
@@ -147,8 +159,10 @@ bool AppSettings::parseSettingsFile(const QString& filepath)
             const auto close_steam_before_sleep_v = obj_v.value(QLatin1String("close_steam_before_sleep"));
             const auto mac_address_override_v     = obj_v.value(QLatin1String("mac_address_override"));
             const auto steam_exec_override_v      = obj_v.value(QLatin1String("steam_exec_override"));
+            const auto steam_dir_override_v       = obj_v.value(QLatin1String("steam_dir"));
+            const auto apollo_apps_filepath_v     = obj_v.value(QLatin1String("apollo_apps_filepath"));
 
-            constexpr int current_entries{8};
+            constexpr int current_entries{9};
             int           valid_entries{0};
 
             if (port_v.isDouble())
@@ -210,6 +224,16 @@ bool AppSettings::parseSettingsFile(const QString& filepath)
                 m_steam_exec_override = steam_exec_override_v.toString();
                 valid_entries++;
             }
+            if (steam_dir_override_v.isString())
+            {
+                m_steam_dir_override = steam_dir_override_v.toString();
+                valid_entries++;
+            }
+             if (apollo_apps_filepath_v.isString())
+            {
+                m_apollo_apps_filepath = apollo_apps_filepath_v.toString();
+                valid_entries++;
+            }
 
             return valid_entries == current_entries;
         }
@@ -230,6 +254,8 @@ void AppSettings::saveDefaultFile(const QString& filepath) const
     obj["close_steam_before_sleep"] = m_close_steam_before_sleep;
     obj["mac_address_override"]     = m_mac_address_override;
     obj["steam_exec_override"]      = m_steam_exec_override;
+    obj["steam_dir"]      = m_steam_dir_override;
+    obj["apollo_apps_filepath"]   = m_apollo_apps_filepath;
 
     QFile file{filepath};
     if (!file.exists())
